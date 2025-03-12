@@ -199,13 +199,13 @@ class BLEIMURecorder:
 
     def extract_and_predict(self):
         global IMU_BUFFER
-        IMU_DATA_LIMIT = 40  # Number of frames per action
         # Extract the first 40 frames from the buffer
         chunk = IMU_BUFFER[:IMU_DATA_LIMIT]
         print(f"Extracting features from {len(chunk)} samples...")
         
         features = {}
-        for col in range(0, 6):
+        # ignore timestamp
+        for col in range(1, 7):
             # Extract the data for the current sensor (column)
             col_data = [row[col] for row in chunk] # column by column i.e. [accX, accY, accZ, gyrX, gyrY, gyrZ]
             features[f'col{col}_mean'] = np.mean(col_data)
@@ -218,7 +218,7 @@ class BLEIMURecorder:
         # Build the input feature vector in a consistent order.
         # Order: col1_mean, col1_std, col1_min, col1_max, col1_range, col1_median, col2_mean, ... col6_median
         feature_vector = []
-        for col in range(0, 6):
+        for col in range(1, 7):
             for stat in ['mean', 'std', 'min', 'max', 'range', 'median']:
                 feature_vector.append(features[f'col{col}_{stat}'])
         
