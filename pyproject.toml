@@ -20,7 +20,8 @@ seaborn = "^0.13.2"
 [tool.poetry.scripts]
 train = "ml_model.train:main"
 data = "ml_model.data:main"
-
+test = "ml_model.test:main"
+inference = "ml_model.inference:main"
 
 [build-system]
 requires = ["poetry-core"]
