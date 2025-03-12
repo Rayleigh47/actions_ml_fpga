@@ -1,2 +1,3 @@
 confusion_matrix_with_totals.png
-ml_model/__pycache__/*
+ml_model/__pycache__/
+logger/venv
