@@ -1,4 +1,4 @@
-Requires Poetry dependency management.
+Requires Poetry depedency management.
 
 Run:
 
