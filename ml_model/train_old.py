@@ -38,7 +38,7 @@ def main():
     X_np = X.values.astype(np.float32)
     y_np = y_encoded.astype(np.int64)
     
-    # Create Train-Test Splits
+    # Create Train-Test Splits (we use only training data here)
     X_train, X_test, y_train, y_test = train_test_split(X_np, y_np, test_size=0.2, random_state=42)
     train_ds = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
     
@@ -51,15 +51,10 @@ def main():
     model = MLP(input_dim=input_dim, hidden_dim=64, num_classes=num_classes)
     
     criterion = nn.CrossEntropyLoss()
-
-    # Use L2 Regularization (Weight Decay)
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)  # L2 regularization
-
-    # L1 Regularization Parameter
-    l1_lambda = 1e-5
-
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    
     # Training Loop
-    num_epochs = 100
+    num_epochs = 50
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -67,11 +62,6 @@ def main():
             optimizer.zero_grad()
             outputs = model(batch_X)
             loss = criterion(outputs, batch_y)
-
-            # Apply L1 Regularization Manually
-            l1_penalty = sum(param.abs().sum() for param in model.parameters())
-            loss += l1_lambda * l1_penalty  # Adding L1 penalty to loss
-
             loss.backward()
             optimizer.step()
             running_loss += loss.item() * batch_X.size(0)

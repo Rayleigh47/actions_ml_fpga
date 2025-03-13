@@ -87,12 +87,12 @@ def main():
     
     # Annotate each row with its total
     for i in range(len(cm)):
-        ax.text(len(cm[0]) + 0.3, i + 0.5, f'Total: {row_totals[i]}',
+        ax.text(len(cm[0]) + 0.3, i + 0.5, f'{row_totals[i]}',
                 va='center', ha='center', fontweight='bold')
     
     # Annotate each column with its total
     for j in range(len(cm[0])):
-        ax.text(j + 0.5, -0.3, f'Total: {col_totals[j]}',
+        ax.text(j + 0.5, -0.3, f'{col_totals[j]}',
                 va='center', ha='center', fontweight='bold')
     
     plt.xlabel("Predicted")

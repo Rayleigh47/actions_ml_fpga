@@ -9,7 +9,7 @@ base_dir = './actions'
 output_dir = './data'
 
 # List of action names (folder names)
-actions = ['badminton', 'boxing', 'fencing', 'golf', 'reload', 'shield', 'snowbomb']
+actions = ['badminton', 'boxing', 'end', 'fencing', 'golf', 'reload', 'shield', 'snowbomb', 'walking', 'wearing']
 
 def append_csv(output_csv):
     # List to store individual DataFrames
