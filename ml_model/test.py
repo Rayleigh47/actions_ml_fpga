@@ -25,6 +25,62 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.network(x)
 
+def export_model_to_header(model, filename="model_params.hpp"):
+    # Get the state dict from the model
+    state_dict = model.state_dict()
+    
+    with open(filename, "w") as f:
+        f.write("// Auto-generated model parameters\n\n")
+        f.write("// Parameter shapes (for reference):\n")
+        layer_idx = 0
+        # Print the shapes of the weight matrices
+        for layer in model.network:
+            if isinstance(layer, nn.Linear):
+                # Retrieve weight and bias tensors
+                weight_tensor = layer.weight.detach().cpu().numpy()
+                bias_tensor = layer.bias.detach().cpu().numpy()
+                
+                # Get the shape of the weight matrix
+                rows, cols = weight_tensor.shape
+                f.write(f"// layer_{layer_idx}_weight[{rows}][{cols}]\n")
+
+                # Get the shape of the bias vector
+                bias_len = bias_tensor.shape[0]
+                f.write(f"// layer_{layer_idx}_bias[{bias_len}]\n\n")
+
+                layer_idx += 1
+
+        layer_idx = 0
+        # Iterate over each layer in the sequential container
+        for layer in model.network:
+            if isinstance(layer, nn.Linear):
+                # Retrieve weight and bias tensors
+                weight_tensor = layer.weight.detach().cpu().numpy()
+                bias_tensor = layer.bias.detach().cpu().numpy()
+                
+                # Get the shape of the weight matrix: [rows, cols]
+                rows, cols = weight_tensor.shape
+                
+                # Write the weight matrix as a multi-dimensional array
+                f.write(f"static const float layer_{layer_idx}_weight[{rows}][{cols}] = {{\n")
+                for i, row in enumerate(weight_tensor):
+                    row_vals = ", ".join([f"{v:.8f}" for v in row])
+                    # Separate rows with commas
+                    if i < rows - 1:
+                        f.write(f"    {{ {row_vals} }},\n")
+                    else:
+                        f.write(f"    {{ {row_vals} }}\n")
+                f.write("};\n\n")
+                
+                # Write the bias vector as a 1D array
+                bias_len = bias_tensor.shape[0]
+                bias_vals = ", ".join([f"{v:.8f}" for v in bias_tensor])
+                f.write(f"static const float layer_{layer_idx}_bias[{bias_len}] = {{ {bias_vals} }};\n\n")
+                
+                layer_idx += 1
+
+    print(f"Model parameters exported to {filename}")
+
 def main():
     # Load Processed Data
     current_dir = os.path.dirname(__file__)
@@ -102,6 +158,9 @@ def main():
     cm_path = os.path.join(current_dir, "confusion_matrix_with_totals.png")
     plt.savefig(cm_path)
     print(f"Confusion matrix saved as '{cm_path}'")
+
+    # Export model parameters to a C++ header file
+    export_model_to_header(model, filename="model_params.hpp")
 
 if __name__ == '__main__':
     main()
