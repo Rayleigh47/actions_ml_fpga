@@ -18,9 +18,8 @@
  */
 typedef ap_axis<32, 2, 5, 6> AXI_VAL;
 typedef ap_fixed<32,16> input_fixed_t; // 32-bit fixed point: 16 integer bits, 16 fractional bits
-typedef ap_fixed<32, 8> fixed_t;  // 32-bit fixed point: 8 integer bits, 24 fractional bits
-typedef ap_fixed<48,16 > prod_fixed_t;      // Define an intermediate type with sufficient width (adjust ? as needed)
-//typedef float fixed_t;
+typedef ap_fixed<32, 12> fixed_t;  // 32-bit fixed point: 12 integer bits (after multiplied with fractional weights), 20 fractional bits
+typedef ap_fixed<36,16 > prod_fixed_t;      // Define an intermediate type with sufficient width, as much int as input_fixed_t as much float as fixed_t
 
 /*
  * Union to represent different data type in same memory location.
