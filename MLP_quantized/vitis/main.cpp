@@ -117,15 +117,15 @@ void compute_softmax(int32_t output[10], float class_predictions[10]) {
 }
 
 // Top-level function
-void mlp_forward(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream) {
+void mlp_quantized_72_forward(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream) {
     #pragma HLS INTERFACE axis port=in_stream
     #pragma HLS INTERFACE axis port=out_stream
     #pragma HLS INTERFACE s_axilite port=return
 
-    // Bind weights and biases to BRAM
+    // Bind weights and biases to BRAM/LUTRAM
     #pragma HLS BIND_STORAGE variable=weight_layer_0 type=ROM_2P impl=BRAM
-    #pragma HLS BIND_STORAGE variable=weight_layer_1 type=ROM_2P impl=BRAM
-    #pragma HLS BIND_STORAGE variable=weight_layer_2 type=ROM_2P impl=BRAM
+    #pragma HLS BIND_STORAGE variable=weight_layer_1 type=ROM_2P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=weight_layer_2 type=ROM_2P impl=LUTRAM
     #pragma HLS BIND_STORAGE variable=bias_layer_0   type=ROM_1P impl=BRAM
     #pragma HLS BIND_STORAGE variable=bias_layer_1   type=ROM_1P impl=BRAM
     #pragma HLS BIND_STORAGE variable=bias_layer_2   type=ROM_1P impl=BRAM
@@ -146,7 +146,7 @@ void mlp_forward(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &ou
     compute_layer2(hidden2, output, weight_layer_2, bias_layer_2);
     compute_softmax(output, class_predictions);
 
-    float tmp = 0.7f;
+    float tmp = 0.9f;
     int label = 0;
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         #pragma HLS PIPELINE II=1
