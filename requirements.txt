@@ -1,0 +1,13 @@
+numpy
+bluepy
+crc
+colorama
+pynput
+pandas
+torch
+scikit-learn
+matplotlib
+seaborn
+brevitas
+onnx
+onnxoptimizer
