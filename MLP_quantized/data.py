@@ -1,8 +1,10 @@
 import pandas as pd
 import os
 import glob
+import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
+from scipy.stats import skew, kurtosis
+from scipy.fft import fft
 import pickle
 
 current_dir = os.path.dirname(__file__)
@@ -54,34 +56,47 @@ def extract_features_from_csv(file_path, window_size=40):
     # List of sensor columns (excluding label)
     sensor_cols = [col for col in df.columns if col != 'label']
     
-    # Storage for transformed data
     processed_data = []
     
-    # Process data in windowed chunks
     for i in range(0, len(df), window_size):
-        chunk = df.iloc[i:i+window_size]  # Extract window
-        # check that all rows in the window have the same label, else print warning
+        chunk = df.iloc[i:i+window_size]
+        
+        # Check that all rows in the window have the same label, else print warning
         if not chunk['label'].nunique() == 1:
             print(f"Warning: Found a window with multiple labels: {chunk['label'].unique()}")
-
         if len(chunk) < window_size:
-            continue  # Skip incomplete windows
+            continue
         
-        # Extract features
         features = {}
+        
         for col in sensor_cols:
-            features[f'{col}_mean'] = chunk[col].mean()
-            features[f'{col}_std'] = chunk[col].std()
-            features[f'{col}_min'] = chunk[col].min()
-            features[f'{col}_max'] = chunk[col].max()
-            features[f'{col}_range'] = chunk[col].max() - chunk[col].min()
-            features[f'{col}_median'] = chunk[col].median()
+            data = chunk[col]
+            # Time domain features
+            features[f'{col}_mean'] = data.mean()
+            features[f'{col}_std'] = data.std()  # Standard deviation for the sensor reading
+            features[f'{col}_min'] = data.min()
+            features[f'{col}_max'] = data.max()
+            features[f'{col}_range'] = data.max() - data.min()
+            features[f'{col}_median'] = data.median()
+            # Use nan_to_num to prevent NaNs for skew and kurtosis
+            features[f'{col}_skew'] = np.nan_to_num(skew(data), nan=0.0)
+            features[f'{col}_kurtosis'] = np.nan_to_num(kurtosis(data), nan=0.0)
+            features[f'{col}_mad'] = np.median(np.abs(data - np.median(data)))
+            
+            # Derivative-based features (approximate velocity)
+            diff = np.diff(data)
+            features[f'{col}_diff_mean'] = diff.mean()
+            features[f'{col}_diff_std'] = diff.std()  # Standard deviation of the derivative
+            
+            # Frequency domain: FFT energy (excluding the DC component)
+            fft_coeffs = fft(data)
+            fft_energy = np.sum(np.abs(fft_coeffs[1:])**2)
+            features[f'{col}_fft_energy'] = fft_energy
         
-        # Preserve the action label (assuming all rows in a window have the same label)
+        
         features['label'] = chunk['label'].iloc[0]
-        
         processed_data.append(features)
-    
+
     # Convert to DataFrame
     result_df = pd.DataFrame(processed_data)
     # Save the transformed data

@@ -88,7 +88,7 @@ def main():
     # Define model architecture and load the saved model weights
     input_dim = X_np.shape[1]
     num_classes = len(np.unique(y_np))
-    model = QuantizedMLP(input_dim=input_dim, hidden_dim=64, num_classes=num_classes)
+    model = QuantizedMLP(input_dim=input_dim, hidden_dim=128, num_classes=num_classes)
     
     model_path = os.path.join(current_dir, 'model.pth')
     model.load_state_dict(torch.load(model_path))

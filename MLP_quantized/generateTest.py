@@ -23,14 +23,14 @@ def convert_csv_to_hpp(csv_file, hpp_file, array_name="test_data", label_name="l
         num_samples, num_features = test_data.shape
         
         # Write test_data array
-        f.write(f"const float test_data[{num_samples}][{num_features}] = {{{{\n")
+        f.write(f"const float test_data[{num_samples}][{num_features}] = {{\n")
         for row in test_data:
             row_str = "{ " + ", ".join(map(str, row)) + " }"
             f.write(f"    {row_str},\n")
-        f.write("}};\n\n")
+        f.write("};\n\n")
         
         # Write labels array
-        f.write(f"const int test_labels[{num_samples}]= {{\n")
+        f.write(f"const int test_labels[{num_samples}] = {{\n")
         labels_str = ", ".join(map(str, labels))
         f.write(f"    {labels_str}\n")
         f.write("};\n\n")

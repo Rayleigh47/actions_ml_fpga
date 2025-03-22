@@ -87,17 +87,18 @@ def main():
     
     # Instantiate the quantized model
     input_dim = X_np.shape[1]
+    print(f"Input dimension: {input_dim}")
     num_classes = len(np.unique(y_np))
-    model = QuantizedMLP(input_dim=input_dim, hidden_dim=64, num_classes=num_classes)
+    model = QuantizedMLP(input_dim=input_dim, hidden_dim=128, num_classes=num_classes)
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)  # L2 regularization
+    optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)  # L2 regularization
 
     # L1 Regularization Parameter
     l1_lambda = 1e-5
 
     # Training Loop
-    num_epochs = 200
+    num_epochs = 300
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -130,3 +131,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+    def forward(self, x):
+        out = self.QuantIdentity1(x)
+        out = self.QuantLinear1(out)
+        out = self.QuantReLU1(out)
+        out = self.QuantLinear2(out)
+        out = self.QuantReLU2(out)
+        out = self.QuantLinear3(out)
+        return out
