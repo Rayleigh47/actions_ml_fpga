@@ -1,7 +1,0 @@
-numpy
-bluepy
-crc
-colorama
-pynput
-pandas
-torch
