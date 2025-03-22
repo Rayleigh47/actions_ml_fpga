@@ -92,9 +92,9 @@ void compute_layer2(const int8_t hidden2[HIDDEN_SIZE],
     }
 }
 
-void compute_softmax(int32_t output[10], float class_predictions[10]) {
+void compute_softmax(int32_t output[OUTPUT_SIZE], float class_predictions[OUTPUT_SIZE]) {
     int32_t max_val = output[0];
-    for (int i = 1; i < 10; i++) {
+    for (int i = 1; i < OUTPUT_SIZE; i++) {
         #pragma HLS PIPELINE II=1
         if (output[i] > max_val) {
             max_val = output[i];
@@ -102,7 +102,7 @@ void compute_softmax(int32_t output[10], float class_predictions[10]) {
     }
 
     float sum = 0.0f;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < OUTPUT_SIZE; i++) {
         #pragma HLS PIPELINE II=1
         float temp = (float)(output[i] - max_val);
         float exp_val = expf(temp);
@@ -110,7 +110,7 @@ void compute_softmax(int32_t output[10], float class_predictions[10]) {
         sum += exp_val;
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < OUTPUT_SIZE; i++) {
         #pragma HLS PIPELINE II=1
         class_predictions[i] /= sum;
     }
