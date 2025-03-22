@@ -1,3 +1,11 @@
-confusion_matrix_with_totals.png
-ml_model/__pycache__/
-logger/venv
+MLP/data
+MLP/confusion_matrix_with_totals.png
+MLP/model_params.hpp
+MLP_quantized/data
+MLP_quantized/confusion_matrix_with_totals.png
+MLP_quantized/model_params.hpp
+MLP_quantized/minmax_scaler.pkl
+inference/model.pth
+inference/*.csv
+venv
+.vscode
