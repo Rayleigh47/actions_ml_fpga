@@ -19,7 +19,8 @@ from brevitas.quant import (
 from brevitas.export import export_onnx_qcdq
 
 # configure device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 print(f"Using device: {device}")
 
 # Define the quantized MLP model using Brevitas modules
