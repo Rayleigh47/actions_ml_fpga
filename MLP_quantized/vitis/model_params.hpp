@@ -42,7 +42,7 @@ void compute_layer2(const int32_t hidden2[HIDDEN_SIZE],
                     const int8_t w2[OUTPUT_SIZE][HIDDEN_SIZE],
                     const int32_t b2[OUTPUT_SIZE]);
 void compute_softmax(int32_t output[10], float class_predictions[10]);
-void mlp_forward(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream);
+void mlp_quantized_72_forward(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream);
 
 // Auto-generated model parameters for Vitis HLS
 // Exported from ONNX model: /home/yanming/Projects/fpga_accelerator/MLP_quantized/model.onnx

@@ -1,6 +1,7 @@
 #include "model_params.hpp"
 #include <hls_stream.h>
 #include <math.h>
+#include<hls_math.h>
 #include <ap_int.h>
 
 // Define a helper function for 8-bit quantized ReLU.
