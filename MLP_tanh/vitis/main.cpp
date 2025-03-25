@@ -18,7 +18,6 @@ void read_stream(hls::stream<axi_stream> &in_stream, fixed_t input[INPUT_SIZE]) 
     data x;
     axi_stream inVal;
     for (int i = 0; i < INPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         inVal = in_stream.read();
         x.intVal = inVal.data;  
         // Direct conversion from float to fixed_t without scaling
@@ -40,7 +39,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     // Load first layer weights
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         for (int j = 0; j < INPUT_SIZE; j++) {
-            #pragma HLS PIPELINE II=1
             inVal = in_stream.read();
             x.intVal = inVal.data;  
             // Direct conversion from float to fixed_t without scaling
@@ -50,7 +48,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     }
     // Load first layer biases
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
@@ -60,7 +57,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     // Load second layer weights
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE; j++) {
-            #pragma HLS PIPELINE II=1
             inVal = in_stream.read();
             x.intVal = inVal.data;
             fixed_t val = x.floatVal;
@@ -69,7 +65,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     }
     // Load second layer biases
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
@@ -79,7 +74,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     // Load third layer weights
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE; j++) {
-            #pragma HLS PIPELINE II=1
             inVal = in_stream.read();
             x.intVal = inVal.data;
             fixed_t val = x.floatVal;
@@ -88,7 +82,6 @@ void read_weights_biases(hls::stream<axi_stream> &in_stream,
     }
     // Load third layer biases
     for (int i = 0; i < OUTPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
@@ -111,11 +104,10 @@ void compute_layer0(fixed_t input[INPUT_SIZE],
                     fixed_t hidden1[HIDDEN_SIZE],
                     const weights_t w0[HIDDEN_SIZE][INPUT_SIZE],
                     const fixed_t b0[HIDDEN_SIZE]) {
+    #pragma HLS PIPELINE II=2
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         fixed_t sum = b0[i];
         for (int j = 0; j < INPUT_SIZE; j++) {
-            #pragma HLS UNROLL
             sum += input[j] * w0[i][j];
         }
         hidden1[i] = tanh_activation(sum);
@@ -127,11 +119,10 @@ void compute_layer1(const fixed_t hidden1[HIDDEN_SIZE],
                     fixed_t hidden2[HIDDEN_SIZE],
                     const weights_t w1[HIDDEN_SIZE][HIDDEN_SIZE],
                     const fixed_t b1[HIDDEN_SIZE]) {
+    #pragma HLS PIPELINE II=2
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         fixed_t sum = b1[i];
         for (int j = 0; j < HIDDEN_SIZE; j++) {
-            #pragma HLS UNROLL
             sum += hidden1[j] * w1[i][j];
         }
         hidden2[i] = tanh_activation(sum);
@@ -143,11 +134,10 @@ void compute_layer2(const fixed_t hidden2[HIDDEN_SIZE],
                     fixed_t output[OUTPUT_SIZE],
                     const weights_t w2[OUTPUT_SIZE][HIDDEN_SIZE],
                     const fixed_t b2[OUTPUT_SIZE]) {
+    #pragma HLS PIPELINE II=2
     for (int i = 0; i < OUTPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         fixed_t sum = b2[i];
         for (int j = 0; j < HIDDEN_SIZE; j++) {
-            #pragma HLS UNROLL
             sum += hidden2[j] * w2[i][j];
         }
         output[i] = sum;
@@ -158,7 +148,6 @@ void compute_softmax(fixed_t output[OUTPUT_SIZE], float class_predictions[OUTPUT
     // Rescale the output layer to float
     fixed_t max_val = output[0];
     for (int i = 1; i < OUTPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         if (output[i] > max_val) {
             max_val = output[i];
         }
@@ -166,7 +155,6 @@ void compute_softmax(fixed_t output[OUTPUT_SIZE], float class_predictions[OUTPUT
 
     float sum = 0.0f;
     for (int i = 0; i < OUTPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         float temp = (float)(output[i] - max_val);
         float exp_val = hls::expf(temp);
         class_predictions[i] = exp_val;
@@ -174,7 +162,6 @@ void compute_softmax(fixed_t output[OUTPUT_SIZE], float class_predictions[OUTPUT
     }
 
     for (int i = 0; i < OUTPUT_SIZE; i++) {
-        #pragma HLS PIPELINE II=1
         class_predictions[i] /= sum;
     }
 }
@@ -188,12 +175,6 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
     #pragma HLS INTERFACE s_axilite port=mode bundle=control
     #pragma HLS INTERFACE s_axilite port=return bundle=control
 
-    fixed_t hidden1[HIDDEN_SIZE];
-    fixed_t hidden2[HIDDEN_SIZE];
-    fixed_t input[INPUT_SIZE];
-    fixed_t output[OUTPUT_SIZE];
-    float class_predictions[OUTPUT_SIZE];
-
     // Weights and biases
     static weights_t network_0_weight[HIDDEN_SIZE][INPUT_SIZE];
     static weights_t network_2_weight[HIDDEN_SIZE][HIDDEN_SIZE];
@@ -203,12 +184,38 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
     static fixed_t network_4_bias[OUTPUT_SIZE];
 
     // Place weight/bias arrays in LUTRAM/BRAM
-    #pragma HLS RESOURCE variable=network_0_weight core=RAM_2P_LUTRAM
-    #pragma HLS RESOURCE variable=network_2_weight core=RAM_2P_LUTRAM
-    #pragma HLS RESOURCE variable=network_4_weight core=RAM_2P_LUTRAM
-    #pragma HLS RESOURCE variable=network_0_bias core=RAM_1P_BRAM
-    #pragma HLS RESOURCE variable=network_2_bias core=RAM_1P_BRAM
-    #pragma HLS RESOURCE variable=network_4_bias core=RAM_1P_BRAM
+    #pragma HLS BIND_STORAGE variable=network_0_weight type=RAM_2P impl=BRAM
+    #pragma HLS BIND_STORAGE variable=network_2_weight type=RAM_2P impl=BRAM
+    #pragma HLS BIND_STORAGE variable=network_4_weight type=RAM_2P impl=BRAM
+    #pragma HLS BIND_STORAGE variable=network_0_bias type=RAM_1P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=network_2_bias type=RAM_1P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=network_4_bias type=RAM_1P impl=LUTRAM
+
+    // Partition weight and bias arrays to allow parallel accesses
+    #pragma HLS ARRAY_PARTITION variable=network_0_weight complete dim=1
+    #pragma HLS ARRAY_PARTITION variable=network_2_weight complete dim=1
+    #pragma HLS ARRAY_PARTITION variable=network_4_weight complete dim=1
+    #pragma HLS ARRAY_PARTITION variable=network_0_bias complete
+    #pragma HLS ARRAY_PARTITION variable=network_2_bias complete
+    #pragma HLS ARRAY_PARTITION variable=network_4_bias complete
+
+    fixed_t hidden1[HIDDEN_SIZE];
+    fixed_t hidden2[HIDDEN_SIZE];
+    fixed_t input[INPUT_SIZE];
+    fixed_t output[OUTPUT_SIZE];
+    float class_predictions[OUTPUT_SIZE];
+
+    // Place hidden, input and output layers in BRAM
+    #pragma HLS BIND_STORAGE variable=hidden1 type=RAM_1P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=hidden2 type=RAM_1P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=input type=RAM_1P impl=LUTRAM
+    #pragma HLS BIND_STORAGE variable=output type=RAM_1P impl=LUTRAM
+
+    // Partition arrays to allow parallel accesses
+    #pragma HLS ARRAY_PARTITION variable=hidden1 complete
+    #pragma HLS ARRAY_PARTITION variable=hidden2 complete
+    #pragma HLS ARRAY_PARTITION variable=input complete
+    #pragma HLS ARRAY_PARTITION variable=output complete
 
     if (mode == 1) {
        // Store weights & biases
@@ -226,7 +233,6 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
         int label = 0;
         float max_val = class_predictions[0];
         for (int i = 1; i < OUTPUT_SIZE; i++) {
-            #pragma HLS PIPELINE II=1
             if (class_predictions[i] > max_val) {
                 max_val = class_predictions[i];
                 label = i;
