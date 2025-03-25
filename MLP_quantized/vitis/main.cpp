@@ -59,7 +59,7 @@ void compute_layer0(int8_t input[INPUT_SIZE],
 }
 
 // Compute second hidden layer with quantized ReLU activation.
-void compute_layer1(const int8_t hidden1[HIDDEN_SIZE],
+void compute_layer1(int8_t hidden1[HIDDEN_SIZE],
                     int8_t hidden2[HIDDEN_SIZE],
                     const int8_t w1[HIDDEN_SIZE][HIDDEN_SIZE],
                     const int32_t b1[HIDDEN_SIZE],
@@ -77,7 +77,7 @@ void compute_layer1(const int8_t hidden1[HIDDEN_SIZE],
 }
 
 // Compute output layer (no activation quantization applied here)
-void compute_layer2(const int8_t hidden2[HIDDEN_SIZE],
+void compute_layer2(int8_t hidden2[HIDDEN_SIZE],
                     int32_t output[OUTPUT_SIZE],
                     const int8_t w2[OUTPUT_SIZE][HIDDEN_SIZE],
                     const int32_t b2[OUTPUT_SIZE]) {
@@ -138,8 +138,8 @@ void mlp_quantized_72_forward(hls::stream<axi_stream> &in_stream, hls::stream<ax
     float class_predictions[OUTPUT_SIZE];
 
     // Scaling factors for quantization (tune these based on calibration)
-    const float scale0 = 0.001f; // Example for layer 0
-    const float scale1 = 0.001f; // Example for layer 1
+    const float scale0 = 0.000030655f / 0.015625f; // From ONNX file
+    const float scale1 = 0.000061035f / 0.015625f; // From ONNX file
 
     read_stream(in_stream, input);
     compute_layer0(input, hidden1, weight_layer_0, bias_layer_0, scale0);

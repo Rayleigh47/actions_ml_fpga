@@ -26,6 +26,7 @@ def export_initializers_to_hpp(onnx_file, hpp_filename="model_params.hpp"):
 
     weight_layer = 0
     bias_layer = 0
+    act_layer = 0
 
     with open(hpp_filename, "w") as f:
         f.write("// Auto-generated model parameters for Vitis HLS\n")
