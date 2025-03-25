@@ -195,12 +195,12 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
     float class_predictions[OUTPUT_SIZE];
 
     // Weights and biases
-    static weights_t network_0_weight[HIDDEN_SIZE][INPUT_SIZE];
-    static weights_t network_2_weight[HIDDEN_SIZE][HIDDEN_SIZE];
-    static weights_t network_4_weight[OUTPUT_SIZE][HIDDEN_SIZE];
-    static fixed_t network_0_bias[HIDDEN_SIZE];
-    static fixed_t network_2_bias[HIDDEN_SIZE];
-    static fixed_t network_4_bias[OUTPUT_SIZE];
+    // static weights_t network_0_weight[HIDDEN_SIZE][INPUT_SIZE];
+    // static weights_t network_2_weight[HIDDEN_SIZE][HIDDEN_SIZE];
+    // static weights_t network_4_weight[OUTPUT_SIZE][HIDDEN_SIZE];
+    // static fixed_t network_0_bias[HIDDEN_SIZE];
+    // static fixed_t network_2_bias[HIDDEN_SIZE];
+    // static fixed_t network_4_bias[OUTPUT_SIZE];
 
     if (mode == 1) {
        // Store weights & biases

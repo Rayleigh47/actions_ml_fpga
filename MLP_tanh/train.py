@@ -81,7 +81,10 @@ def main():
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}")
     
     # Save the trained model's state_dict to 'model.pth'
-    model_path = os.path.join(current_dir, 'model.pth')
+    model_dir = os.path.join(current_dir, 'models')
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    model_path = os.path.join(model_dir, 'model.pth')
     torch.save(model.state_dict(), model_path)
     print(f"Model saved to {model_path}")
 

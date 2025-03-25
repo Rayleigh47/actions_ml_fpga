@@ -19,7 +19,7 @@ class MLP(nn.Module):
 
 # Load the saved PyTorch model
 model = MLP(72, 64, 10)  # Define your model structure
-state_dict = torch.load("model.pth", map_location=torch.device('cpu'))
+state_dict = torch.load("models/model.pth", map_location=torch.device('cpu'))
 model.load_state_dict(state_dict)
 model.eval()
 
@@ -66,6 +66,6 @@ with open(header_filename, "w") as f:
 
         # Write the C++ array declaration with preserved dimensions.
         initializer = array_to_brace_str(param_np)
-        f.write(f"static const {type_name} {var_name}{dims_str} = {initializer};\n\n")
+        f.write(f"static {type_name} {var_name}{dims_str} = {initializer};\n\n")
 
 print(f"Weights and biases exported to {header_filename}")

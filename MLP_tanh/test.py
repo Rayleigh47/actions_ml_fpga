@@ -108,7 +108,10 @@ def main():
     num_classes = len(np.unique(y_np))
     model = MLP(input_dim=input_dim, hidden_dim=64, num_classes=num_classes)
     
-    model_path = os.path.join(current_dir, 'model.pth')
+    model_dir = os.path.join(current_dir, 'models')
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    model_path = os.path.join(model_dir, 'model.pth')
     model.load_state_dict(torch.load(model_path))
     model.eval()
     print(f"Model loaded from {model_path}")
