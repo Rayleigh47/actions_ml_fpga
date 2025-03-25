@@ -71,7 +71,10 @@ def export_initializers_to_hpp(onnx_file, hpp_filename="model_params.hpp"):
 if __name__ == '__main__':
     # Path to onnx file and model_params.hpp
     current_dir = os.path.dirname(__file__)
-    onnx_file = os.path.join(current_dir, 'model.onnx')
-    hpp = os.path.join(current_dir, 'model_params.hpp')
+    models_dir = os.path.join(current_dir, 'models')
+    if not os.path.exists(models_dir):
+        os.makedirs(models_dir)
+    onnx_file = os.path.join(models_dir, 'model.onnx')
+    hpp = os.path.join(models_dir, 'model_params.hpp')
 
     export_initializers_to_hpp(onnx_file, hpp)

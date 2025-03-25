@@ -1,10 +1,11 @@
 inference/model.pth
 inference/*.csv
 MLP_quantized/data
+MLP_quantized/models
 MLP_quantized/confusion_matrix_with_totals.png
-MLP_quantized/model_params.hpp
 MLP_quantized/minmax_scaler.pkl
-MLP_quantized/model.pth
-MLP_quantized/model.onnx
+MNIST/data
+MNIST/models
+MNIST/confusion_matrix_with_totals.png
 venv
 .vscode

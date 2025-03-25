@@ -119,14 +119,19 @@ def main():
         epoch_loss = running_loss / len(train_loader.dataset)
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}")
     
-    # Save the trained model's state_dict to 'model.pth'
-    model_path = os.path.join(current_dir, 'model.pth')
+    # data directory
+    data_dir = os.path.join(current_dir, 'data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    # Save the model pth
+    model_path = os.path.join(data_dir, 'model.pth')
     torch.save(model.state_dict(), model_path)
     print(f"Model saved to {model_path}")
 
     # Export as onnx
     dummy_input = torch.randn(1, input_dim)
-    onnx_path = os.path.join(current_dir, 'model.onnx')
+    onnx_path = os.path.join(data_dir, 'model.onnx')
     export_onnx_qcdq(model, dummy_input, onnx_path)
     print(f"Model exported to {onnx_path}")
 
