@@ -202,6 +202,14 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
     static fixed_t network_2_bias[HIDDEN_SIZE];
     static fixed_t network_4_bias[OUTPUT_SIZE];
 
+    // Place weight/bias arrays in LUTRAM/BRAM
+    #pragma HLS RESOURCE variable=network_0_weight core=RAM_2P_LUTRAM
+    #pragma HLS RESOURCE variable=network_2_weight core=RAM_2P_LUTRAM
+    #pragma HLS RESOURCE variable=network_4_weight core=RAM_2P_LUTRAM
+    #pragma HLS RESOURCE variable=network_0_bias core=RAM_1P_BRAM
+    #pragma HLS RESOURCE variable=network_2_bias core=RAM_1P_BRAM
+    #pragma HLS RESOURCE variable=network_4_bias core=RAM_1P_BRAM
+
     if (mode == 1) {
        // Store weights & biases
        read_weights_biases(in_stream, network_0_weight, network_2_weight, network_4_weight, network_0_bias, network_2_bias, network_4_bias);
