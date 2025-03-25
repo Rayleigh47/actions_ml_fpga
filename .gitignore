@@ -7,5 +7,12 @@ MLP_quantized/minmax_scaler.pkl
 MNIST/data
 MNIST/models
 MNIST/confusion_matrix_with_totals.png
+MNIST_quantized/data
+MNIST_quantized/models
+MNIST_quantized/confusion_matrix_with_totals.png
+MLP_tanh/data
+MLP_tanh/models
+MLP_tanh/confusion_matrix_with_totals.png
+MLP_tanh/minmax_scaler.pkl
 venv
 .vscode

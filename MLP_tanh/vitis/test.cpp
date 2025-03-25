@@ -6,22 +6,28 @@
 
 typedef ap_axis<32, 2, 5, 6> axi_stream;
 
-// Utility function to check if two floats are approximately equal
-//bool is_approx_equal(float a, float b, float tolerance = 0.00001f) {
-//    return std::fabs(a - b) <= tolerance;
-//}
-
 bool is_equal(int a, int b) {
     return (a-b) == 0;
 }
 
 int main() {
-    
+
+    // Load the weights and biases into the model
+    hls::stream<axi_stream> in_stream;
+    hls::stream<axi_stream> out_stream;
+    for (int i = 0; i < length; i++) {
+        axi_stream val;
+        val.data = *((int*)&weights_and_bias[i]);
+        val.last = (i == length - 1) ? 1 : 0;
+        in_stream.write(val);
+    }
+    // Run the neural network in load mode
+    mlp_tanh_forward(in_stream, out_stream, 1);
+
     // Results storage
     int model_output[test_length];
     bool all_tests_passed = true;
     int count = 0;
-
     // Process each test input
     for (int i = 0; i < test_length; i++) {
         // Create input and output streams

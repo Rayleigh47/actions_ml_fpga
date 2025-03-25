@@ -19,7 +19,7 @@ class MLP(nn.Module):
 
 # Load the saved PyTorch model
 model = MLP(72, 64, 10)
-state_dict = torch.load("model.pth", map_location=torch.device('cpu'))
+state_dict = torch.load("models/model.pth", map_location=torch.device('cpu'))
 model.load_state_dict(state_dict)
 model.eval()
 
