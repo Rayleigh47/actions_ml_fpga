@@ -6,12 +6,12 @@
 #include <ap_fixed.h>
 
 // Weights and biases
-static weights_t network_0_weight[HIDDEN_SIZE][INPUT_SIZE];
-static weights_t network_2_weight[HIDDEN_SIZE][HIDDEN_SIZE];
-static weights_t network_4_weight[OUTPUT_SIZE][HIDDEN_SIZE];
-static fixed_t network_0_bias[HIDDEN_SIZE];
-static fixed_t network_2_bias[HIDDEN_SIZE];
-static fixed_t network_4_bias[OUTPUT_SIZE];
+// static weights_t network_0_weight[HIDDEN_SIZE][INPUT_SIZE];
+// static weights_t network_2_weight[HIDDEN_SIZE][HIDDEN_SIZE];
+// static weights_t network_4_weight[OUTPUT_SIZE][HIDDEN_SIZE];
+// static fixed_t network_0_bias[HIDDEN_SIZE];
+// static fixed_t network_2_bias[HIDDEN_SIZE];
+// static fixed_t network_4_bias[OUTPUT_SIZE];
 
 fixed_t tanh_activation(fixed_t x) {
     // Convert the fixed-point input to float
@@ -34,77 +34,64 @@ void read_stream(hls::stream<axi_stream> &in_stream, fixed_t input[INPUT_SIZE]) 
     }
 }
 
-void read_weights_biases(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream, 
-                         weights_t w0[HIDDEN_SIZE][INPUT_SIZE],
-                         weights_t w1[HIDDEN_SIZE][HIDDEN_SIZE], 
-                         weights_t w2[OUTPUT_SIZE][HIDDEN_SIZE],
-                         fixed_t b0[HIDDEN_SIZE], 
-                         fixed_t b1[HIDDEN_SIZE], 
-                         fixed_t b2[OUTPUT_SIZE]) {
+void read_weights_biases(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream) {
     data x;
     axi_stream inVal;
-    int count = 0;
     // Load first layer weights
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         for (int j = 0; j < INPUT_SIZE; j++) {
+            while (in_stream.empty()) { }
             inVal = in_stream.read();
             x.intVal = inVal.data;  
             // Direct conversion from float to fixed_t without scaling
-            weights_t val = x.floatVal;
-            w0[i][j] = val;
+            fixed_t val = x.floatVal;
+            network_0_weight[i][j] = val;
         }
     }
-    count += 1;
-    write_stream(out_stream, count);
     // Load first layer biases
     for (int i = 0; i < HIDDEN_SIZE; i++) {
+        while (in_stream.empty()) { }
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
-        b0[i] = val;
+        network_0_bias[i] = val;
     }
-    count += 1;
-    write_stream(out_stream, count);
     // Load second layer weights
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE; j++) {
+            while (in_stream.empty()) { }
             inVal = in_stream.read();
             x.intVal = inVal.data;
-            weights_t val = x.floatVal;
-            w1[i][j] = val;
+            fixed_t val = x.floatVal;
+            network_2_weight[i][j] = val;
         }
     }
-    count += 1;
-    write_stream(out_stream, count);
     // Load second layer biases
     for (int i = 0; i < HIDDEN_SIZE; i++) {
+        while (in_stream.empty()) { }
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
-        b1[i] = val;
+        network_2_bias[i] = val;
     }
-    count += 1;
-    write_stream(out_stream, count);
     // Load third layer weights
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE; j++) {
+            while (in_stream.empty()) { }
             inVal = in_stream.read();
             x.intVal = inVal.data;
-            weights_t val = x.floatVal;
-            w2[i][j] = val;
+            fixed_t val = x.floatVal;
+            network_4_weight[i][j] = val;
         }
     }
-    count += 1;
-    write_stream(out_stream, count);
     // Load third layer biases
     for (int i = 0; i < OUTPUT_SIZE; i++) {
+        while (in_stream.empty()) { }
         inVal = in_stream.read();
         x.intVal = inVal.data;
         fixed_t val = x.floatVal;
-        b2[i] = val;
+        network_4_bias[i] = val;
     }
-    count += 1;
-    write_stream(out_stream, count);
 }
 
 // Write the predicted label to the AXI stream
@@ -225,7 +212,8 @@ void mlp_tanh_forward(hls::stream<axi_stream> &in_stream,
 
     if (mode == 1) {
        // Store weights & biases
-       read_weights_biases(in_stream, out_stream, network_0_weight, network_2_weight, network_4_weight, network_0_bias, network_2_bias, network_4_bias);
+       // read_weights_biases(in_stream, out_stream, network_0_weight, network_2_weight, network_4_weight, network_0_bias, network_2_bias, network_4_bias);
+       read_weights_biases(in_stream, out_stream);
     }
     else {
         // Perform inference
