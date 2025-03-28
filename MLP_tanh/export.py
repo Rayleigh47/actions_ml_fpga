@@ -33,6 +33,7 @@ all_params = []
 # Iterate over the state dictionary in order.
 # (For a Sequential model, the ordering is typically as desired.)
 for name, param in state_dict.items():
+    print(f"Exporting {name} with param {param}")
     # Convert the tensor to a NumPy array and flatten it to 1D
     param_flat = param.cpu().numpy().flatten()
     # Append the values to the list
