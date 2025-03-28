@@ -6,13 +6,13 @@
 
 // Contiguous RAM to store DMA transfer
 static int32_t total_weights_bias[TOTAL_WEIGHTS_BIAS] = {0};
-// Weights and biases
-static int8_t weights_0[HIDDEN_SIZE][INPUT_SIZE] = {0};
-static int32_t bias_0[HIDDEN_SIZE] = {0};
-static int8_t weights_1[HIDDEN_SIZE][HIDDEN_SIZE] = {0};
-static int32_t bias_1[HIDDEN_SIZE] = {0};
-static int8_t weights_2[OUTPUT_SIZE][HIDDEN_SIZE] = {0};
-static int32_t bias_2[OUTPUT_SIZE] = {0};
+// Weights and biases pre initialized in model_params.hpp
+// static int8_t weights_0[HIDDEN_SIZE][INPUT_SIZE] = {0};
+// static int32_t bias_0[HIDDEN_SIZE] = {0};
+// static int8_t weights_1[HIDDEN_SIZE][HIDDEN_SIZE] = {0};
+// static int32_t bias_1[HIDDEN_SIZE] = {0};
+// static int8_t weights_2[OUTPUT_SIZE][HIDDEN_SIZE] = {0};
+// static int32_t bias_2[OUTPUT_SIZE] = {0};
 
 void read_weights_biases(hls::stream<axi_stream> &in_stream) {
     axi_stream inVal;
@@ -142,11 +142,23 @@ void read_inputs(hls::stream<axi_stream> &in_stream, int8_t input[INPUT_SIZE]) {
     }
 }
 
-int8_t quantize_relu(int32_t sum, float scale) {
-    float result = sum * scale;
-    int result_int = (int)(result + 0.5f);
+// Tanh approximation function for x in [-1, 1]. Outside this range, we saturate.
+float tanh_approx(float x) {
+    if (x < -1.0f) return -1.0f;
+    else if (x > 1.0f) return 1.0f;
+    else return x * (27.0f + x * x) / (27.0f + 9.0f * x * x);
+}
+
+int8_t quantize_tanh(int32_t sum, float scale) {
+    // Scale the accumulated sum
+    float x = sum * scale;
+    // Use the tanh approximation
+    float y = tanh_approx(x);
+    // Map the output from [-1, 1] to [-128, 127]
+    int result_int = (int)(y * 127.0f + (y >= 0 ? 0.5f : -0.5f));
+    // Clamp to int8_t range
     if (result_int > 127) result_int = 127;
-    if (result_int < 0) result_int = 0;
+    if (result_int < -128) result_int = -128;
     return (int8_t)result_int;
 }
 
@@ -182,7 +194,7 @@ void compute_layer0(int8_t input[INPUT_SIZE],
             int32_t product = input[j] * w0[i][j];
             sum += product;
         }
-        hidden1[i] = quantize_relu(sum, scale_0);
+        hidden1[i] = quantize_tanh(sum, scale_0);
     }
 }
 
@@ -199,7 +211,7 @@ void compute_layer1(int8_t hidden1[HIDDEN_SIZE],
             int32_t product = hidden1[j] * w1[i][j];
             sum += product;
         }
-        hidden2[i] = quantize_relu(sum, scale_1);
+        hidden2[i] = quantize_tanh(sum, scale_1);
     }
 }
 
@@ -275,17 +287,25 @@ void mlp_quantized(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &
     float class_predictions[OUTPUT_SIZE];
 
     // Scaling factors for quantization (tune these based on calibration)
-    const float scale_0 = 0.000030655f / 0.015625f; // From ONNX file
-    const float scale_1 = 0.000061035f / 0.015625f; // From ONNX file
+    // ReLU
+    // const float scale_0 = 0.000030655f / 0.015625f; // From ONNX file
+    // const float scale_1 = 0.000061035f / 0.015625f; // From ONNX file
+    // Tanh
+    const float scale_0 = 0.00003067186116822995f / 0.0078125f; // From ONNX file
+    const float scale_1 = 0.000030517578125f / 0.0078125f; // From ONNX file
 
     
-    read_weights_biases(in_stream);
-    init_layers();
+    // read_weights_biases(in_stream);
+    // init_layers();
     // write_weights_biases(out_stream);
-    for (int i = 0; i < 1000; i ++) {
-        read_inputs(in_stream, input);
-        inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
-        send_outputs(out_stream, class_predictions);
-    }
+    // for (int i = 0; i < 1000; i ++) {
+    //     read_inputs(in_stream, input);
+    //     inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+    //     send_outputs(out_stream, class_predictions);
+    // }
+
+    read_inputs(in_stream, input);
+    inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+    send_outputs(out_stream, class_predictions);
 
 }

@@ -123,7 +123,7 @@ def scale_data():
     print(f"Saved scaled data with {len(df)} rows to {scaled_csv}.")
     
     # Export scaler using pickle for later use in deployment
-    with open(os.path.join(current_dir, 'minmax_scaler.pkl'), 'wb') as f:
+    with open(os.path.join(current_dir, output_dir, 'minmax_scaler.pkl'), 'wb') as f:
         pickle.dump(scaler, f)
     print("Scaler exported to minmax_scaler.pkl.")
 

@@ -9,15 +9,15 @@ bool is_equal(int a, int b) {
 }
 
 int main() {
-    // Load the weights and biases into the model
+    // // Load the weights and biases into the model
     hls::stream<axi_stream> in_stream;
     hls::stream<axi_stream> out_stream;
-    for (int i = 0; i < length; i++) {
-        axi_stream val;
-        val.data = weights_and_bias[i];
-        val.last = (i == length - 1) ? 1 : 0;
-        in_stream.write(val);
-    }
+    // for (int i = 0; i < length; i++) {
+    //     axi_stream val;
+    //     val.data = weights_and_bias[i];
+    //     val.last = (i == length - 1) ? 1 : 0;
+    //     in_stream.write(val);
+    // }
     // mlp_quantized(in_stream, out_stream);
 
     // // LOAD AND WRITE

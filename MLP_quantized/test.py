@@ -11,55 +11,68 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Import Brevitas quantized modules and quantization functions
-from brevitas.nn import QuantIdentity, QuantLinear, QuantReLU
+from brevitas.nn import QuantIdentity, QuantLinear, QuantTanh
 from brevitas.quant import (
     Int8ActPerTensorFloat, 
     Int8WeightPerTensorFixedPoint, 
-    Int8Bias, 
+    Int32Bias, 
     Int8ActPerTensorFixedPoint
 )
 
-# Define the quantized MLP model using Brevitas modules
+# Define the quantized MLP model using Brevitas modules with quantized tanh layers
 class QuantizedMLP(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, num_classes=2):
         super(QuantizedMLP, self).__init__()
         # Input quantization: set threshold=1.0 since inputs are in [0, 1]
-        self.QuantIdentity1 = QuantIdentity(bit_width=8, return_quant_tensor=True, act_quant=Int8ActPerTensorFloat, threshold=1.0)
+        self.QuantIdentity1 = QuantIdentity(
+            bit_width=8, 
+            return_quant_tensor=True, 
+            act_quant=Int8ActPerTensorFloat, 
+            threshold=1.0
+        )
 
-        # Layer 1: Linear -> ReLU with threshold for quantization
-        self.QuantLinear1 = QuantLinear(input_dim, hidden_dim,
-                                        weight_bit_width=8,
-                                        weight_quant=Int8WeightPerTensorFixedPoint,
-                                        return_quant_tensor=True,
-                                        # bias=False,
-                                        cache_inference_quant_bias=True,
-                                        bias_quant=Int8Bias)
-        self.QuantReLU1 = QuantReLU(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
+        # Layer 1: Linear -> Tanh with quantization
+        self.QuantLinear1 = QuantLinear(
+            input_dim, hidden_dim,
+            weight_bit_width=8,
+            weight_quant=Int8WeightPerTensorFixedPoint,
+            return_quant_tensor=True,
+            bias_quant=Int32Bias
+        )
+        self.QuantTanh1 = QuantTanh(
+            bit_width=8, 
+            act_quant=Int8ActPerTensorFixedPoint, 
+            return_quant_tensor=True
+        )
 
-        # Layer 2: Linear -> ReLU
-        self.QuantLinear2 = QuantLinear(hidden_dim, hidden_dim,
-                                        weight_bit_width=8,
-                                        weight_quant=Int8WeightPerTensorFixedPoint,
-                                        return_quant_tensor=True,
-                                        # bias=False,
-                                        cache_inference_quant_bias=True,
-                                        bias_quant=Int8Bias)
-        self.QuantReLU2 = QuantReLU(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
+        # Layer 2: Linear -> Tanh
+        self.QuantLinear2 = QuantLinear(
+            hidden_dim, hidden_dim,
+            weight_bit_width=8,
+            weight_quant=Int8WeightPerTensorFixedPoint,
+            return_quant_tensor=True,
+            bias_quant=Int32Bias
+        )
+        self.QuantTanh2 = QuantTanh(
+            bit_width=8, 
+            act_quant=Int8ActPerTensorFixedPoint, 
+            return_quant_tensor=True
+        )
 
         # Output Layer: Linear (typically no activation quantization needed here)
-        self.QuantLinear3 = QuantLinear(hidden_dim, num_classes,
-                                        weight_bit_width=8,
-                                        weight_quant=Int8WeightPerTensorFixedPoint,
-                                        # bias=False,
-                                        cache_inference_quant_bias=True,
-                                        bias_quant=Int8Bias)
+        self.QuantLinear3 = QuantLinear(
+            hidden_dim, num_classes,
+            weight_bit_width=8,
+            weight_quant=Int8WeightPerTensorFixedPoint,
+            bias_quant=Int32Bias
+        )
         
     def forward(self, x):
         out = self.QuantIdentity1(x)
         out = self.QuantLinear1(out)
-        out = self.QuantReLU1(out)
+        out = self.QuantTanh1(out)
         out = self.QuantLinear2(out)
-        out = self.QuantReLU2(out)
+        out = self.QuantTanh2(out)
         out = self.QuantLinear3(out)
         return out
 
@@ -89,8 +102,8 @@ def main():
     input_dim = X_np.shape[1]
     num_classes = len(np.unique(y_np))
     model = QuantizedMLP(input_dim=input_dim, hidden_dim=128, num_classes=num_classes)
-    
-    model_path = os.path.join(current_dir, 'model.pth')
+    model_dir = os.path.join(current_dir, 'models')
+    model_path = os.path.join(model_dir, 'model.pth')
     model.load_state_dict(torch.load(model_path))
     model.eval()
     print(f"Model loaded from {model_path}")
