@@ -17,6 +17,7 @@ MLP_tanh/minmax_scaler.pkl
 venv
 .vscode
 .locks
+.lock
 .peers.ini
 .repo.yaml
 logs/
