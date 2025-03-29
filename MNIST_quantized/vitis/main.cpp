@@ -5,55 +5,67 @@
 #include <ap_int.h>
 
 // Contiguous RAM to store DMA transfer
-static int32_t total_weights_bias[TOTAL_WEIGHTS_BIAS] = {0};
-static int8_t weights_0[HIDDEN_SIZE_0][INPUT_SIZE] = {0};
-static int8_t weights_1[HIDDEN_SIZE_1][HIDDEN_SIZE_0] = {0};
-static int8_t weights_2[OUTPUT_SIZE][HIDDEN_SIZE_1] = {0};
-static int32_t bias_0[HIDDEN_SIZE_0] = {0};
-static int32_t bias_1[HIDDEN_SIZE_1] = {0};
-static int32_t bias_2[OUTPUT_SIZE] = {0};
+// static int32_t total_weights_bias[TOTAL_WEIGHTS_BIAS] = {0};
+// static int8_t weights_0[HIDDEN_SIZE_0][INPUT_SIZE] = {0};
+// static int8_t weights_1[HIDDEN_SIZE_1][HIDDEN_SIZE_0] = {0};
+// static int8_t weights_2[OUTPUT_SIZE][HIDDEN_SIZE_1] = {0};
+// static int32_t bias_0[HIDDEN_SIZE_0] = {0};
+// static int32_t bias_1[HIDDEN_SIZE_1] = {0};
+// static int32_t bias_2[OUTPUT_SIZE] = {0};
 
-void read_weights_biases(hls::stream<axi_stream> &in_stream) {
+// void read_weights_biases(hls::stream<axi_stream> &in_stream) {
+//     axi_stream inVal;
+//     for (int i = 0; i < TOTAL_WEIGHTS_BIAS; i++) {
+//         #pragma HLS PIPELINE off
+//         inVal = in_stream.read();
+//         int32_t val = inVal.data;
+//         total_weights_bias[i] = val;
+//     }
+// }
+
+void init_layers(hls::stream<axi_stream> &in_stream) {
     axi_stream inVal;
-    for (int i = 0; i < TOTAL_WEIGHTS_BIAS; i++) {
-        #pragma HLS PIPELINE off
-        inVal = in_stream.read();
-        int32_t val = inVal.data;
-        total_weights_bias[i] = val;
-    }
-}
-
-void init_layers() {
-    int index = 0;
     // Load first layer weights
     for (int i = 0; i < HIDDEN_SIZE_0; i++) {
         for (int j = 0; j < INPUT_SIZE; j++) {
-            weights_0[i][j] = total_weights_bias[index++];
+            inVal = in_stream.read();
+            int32_t val = inVal.data;
+            weights_0[i][j] = int8_t (val);
         }
     }
     // Load first layer biases
     for (int i = 0; i < HIDDEN_SIZE_0; i++) {
-        bias_0[i] = total_weights_bias[index++];
+        inVal = in_stream.read();
+        int32_t val = inVal.data;
+        bias_0[i] = int32_t (val);
     }
     // Load second layer weights
     for (int i = 0; i < HIDDEN_SIZE_1; i++) {
         for (int j = 0; j < HIDDEN_SIZE_0; j++) {
-            weights_1[i][j] = total_weights_bias[index++];
+            inVal = in_stream.read();
+            int32_t val = inVal.data;
+            weights_1[i][j] = int8_t (val);
         }
     }
     // Load second layer biases
     for (int i = 0; i < HIDDEN_SIZE_1; i++) {
-        bias_1[i] = total_weights_bias[index++];
+        inVal = in_stream.read();
+        int32_t val = inVal.data;
+        bias_1[i] = int32_t (val);
     }
     // Load third layer weights
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE_1; j++) {
-            weights_2[i][j] = total_weights_bias[index++];
+            inVal = in_stream.read();
+            int32_t val = inVal.data;
+            weights_2[i][j] = int8_t (val);
         }
     }
     // Load third layer biases
     for (int i = 0; i < OUTPUT_SIZE; i++) {
-        bias_2[i] = total_weights_bias[index++];
+        inVal = in_stream.read();
+        int32_t val = inVal.data;
+        bias_2[i] = int32_t (val);
     }
 }
 
@@ -291,19 +303,19 @@ void mnist_quantized(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream>
     const float scale_1 = 0.000244140625f / 0.0078125f; // From ONNX file
 
     
-    // For actual implementation
-    read_weights_biases(in_stream);
-    init_layers();
-    // write_weights_biases(out_stream);
-    for (int i = 0; i < 10000; i ++) {
-        read_inputs(in_stream, input);
-        inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
-        send_outputs(out_stream, class_predictions);
-    }
+    // // Uncomment for actual implementation (latency will look super big because it measures over 10000 inferences)
+    // // read_weights_biases(in_stream);
+    // init_layers(in_stream);
+    // // write_weights_biases(out_stream);
+    // for (int i = 0; i < 10000; i ++) {
+    //     read_inputs(in_stream, input);
+    //     inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+    //     send_outputs(out_stream, class_predictions);
+    // }
 
-    // For Testing with test.cpp
-    // read_inputs(in_stream, input);
-    // inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
-    // send_outputs(out_stream, class_predictions);
+    // Uncomment for running testbench with test.cpp/ inference speed results
+    read_inputs(in_stream, input);
+    inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+    send_outputs(out_stream, class_predictions);
 
 }
