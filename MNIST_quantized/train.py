@@ -14,7 +14,7 @@ import time
 from tqdm import tqdm
 
 # Import Brevitas quantized modules and quantization functions
-from brevitas.nn import QuantIdentity, QuantLinear, QuantReLU
+from brevitas.nn import QuantIdentity, QuantLinear, QuantTanh
 from brevitas.quant import (
     Int8ActPerTensorFloat,
     Int8WeightPerTensorFixedPoint, 
@@ -41,7 +41,7 @@ class QuantizedMLP(nn.Module):
                                         weight_quant=Int8WeightPerTensorFixedPoint,
                                         return_quant_tensor=True,
                                         bias_quant=Int32Bias)
-        self.QuantReLU1 = QuantReLU(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
+        self.QuantTanh1 = QuantTanh(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
 
         # Layer 2: Linear -> ReLU with threshold for quantization
         self.QuantLinear2 = QuantLinear(hidden_dim_1, hidden_dim_2,
@@ -49,7 +49,7 @@ class QuantizedMLP(nn.Module):
                                         weight_quant=Int8WeightPerTensorFixedPoint,
                                         return_quant_tensor=True,
                                         bias_quant=Int32Bias)
-        self.QuantReLU2 = QuantReLU(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
+        self.QuantTanh2 = QuantTanh(bit_width=8, act_quant=Int8ActPerTensorFixedPoint, return_quant_tensor=True)
 
         # Output Layer: Linear (typically no activation quantization needed here)
         self.QuantLinear3 = QuantLinear(hidden_dim_2, num_classes,
@@ -60,9 +60,9 @@ class QuantizedMLP(nn.Module):
     def forward(self, x):
         out = self.QuantIdentity1(x)
         out = self.QuantLinear1(out)
-        out = self.QuantReLU1(out)
+        out = self.QuantTanh1(out)
         out = self.QuantLinear2(out)
-        out = self.QuantReLU2(out)
+        out = self.QuantTanh2(out)
         out = self.QuantLinear3(out)
         return out
 
@@ -207,7 +207,7 @@ def main():
     num_classes = 10
     
     # Instantiate the quantized model
-    model = QuantizedMLP(input_dim=input_dim, hidden_dim_1=256, hidden_dim_2=128, num_classes=num_classes).to(device)
+    model = QuantizedMLP(input_dim=input_dim, hidden_dim_1=512, hidden_dim_2=256, num_classes=num_classes).to(device)
     print(f"Model created with input_dim={input_dim} and num_classes={num_classes}")
     
     # Train the model
