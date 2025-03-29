@@ -29,13 +29,17 @@ union data {
 	int intVal;
 	float floatVal;
 };
-// void read_weights_biases(hls::stream<axi_stream> &in_stream);
+
+// Scaling factors for quantization (tune these based on calibration)
+// Tanh
+const float scale_0 = 0.0002452194457873702f / 0.0078125f; // From ONNX file
+const float scale_1 = 0.000244140625f / 0.0078125f; // From ONNX file
+    
 void init_layers(hls::stream<axi_stream> &in_stream);
-void write_weights_biases(hls::stream<axi_stream> &out_stream);
 void read_inputs(hls::stream<axi_stream> &in_stream, int8_t input[INPUT_SIZE]);
 float tanh_approx(float x);
 int8_t quantize_tanh(int32_t sum, float scale);
-void inference(int8_t input[INPUT_SIZE],
+int32_t inference(int8_t input[INPUT_SIZE],
                int8_t hidden_1[HIDDEN_SIZE_0],
                int8_t hidden_2[HIDDEN_SIZE_1],
                int32_t output[OUTPUT_SIZE],
@@ -46,8 +50,7 @@ void inference(int8_t input[INPUT_SIZE],
                int32_t bias_1[HIDDEN_SIZE_1],
                int32_t bias_2[OUTPUT_SIZE],
                float scale_0,
-               float scale_1,
-               float class_predictions[OUTPUT_SIZE]);
+               float scale_1);
 void compute_layer0(int8_t input[INPUT_SIZE],
                     int8_t hidden1[HIDDEN_SIZE_0],
                     int8_t w0[HIDDEN_SIZE_0][INPUT_SIZE],
@@ -62,8 +65,8 @@ void compute_layer2(int8_t hidden2[HIDDEN_SIZE_1],
                     int32_t output[OUTPUT_SIZE],
                     int8_t w2[OUTPUT_SIZE][HIDDEN_SIZE_1],
                     int32_t b2[OUTPUT_SIZE]);
-void compute_softmax(int32_t output[OUTPUT_SIZE], float class_predictions[OUTPUT_SIZE]);
-void send_outputs(hls::stream<axi_stream> &out_stream, float class_predictions[OUTPUT_SIZE]);
+int32_t compute_argmax(int32_t output[OUTPUT_SIZE]);
+void send_outputs(hls::stream<axi_stream> &out_stream, int32_t max_index);
 void mnist_quantized(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream> &out_stream);
 
 // Auto-generated model parameters for Vitis HLS
