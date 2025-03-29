@@ -37,7 +37,7 @@ int main() {
         }
 
         // Run the neural network
-        mlp_quantized_784_forward(in_stream, out_stream);
+        mnist_quantized(in_stream, out_stream);
 
         axi_stream val = out_stream.read();
         model_output[i] = val.data;

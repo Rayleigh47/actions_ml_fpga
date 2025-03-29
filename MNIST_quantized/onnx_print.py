@@ -67,11 +67,45 @@ def export_initializers_to_hpp(onnx_file, hpp_filename="model_params.hpp"):
             f.write("// No weight or bias initializers found.\n")
     print(f"Model parameters exported to {hpp_filename}")
 
-if __name__ == '__main__':
-    # Path to onnx file and model_params.hpp in data
-    model_dir = 'models'
-    os.makedirs(model_dir, exist_ok=True)
-    onnx_file = os.path.join(model_dir, 'model.onnx')
-    hpp = os.path.join(model_dir, 'model_params.hpp')
+def export_initializers_to_csv(onnx_file, csv_filename="model_params.csv"):
+    """
+    Exports all weight and bias values into a CSV file as one continuous list.
+    Weight arrays are flattened and quantized to int8, and bias arrays to int32.
+    """
+    model = onnx.load(onnx_file)
+    graph = model.graph
 
-    export_initializers_to_hpp(onnx_file, hpp)
+    all_values = []  # This will store the flattened values
+
+    for init in graph.initializer:
+        arr = numpy_helper.to_array(init)
+        name_lower = init.name.lower()
+        if ("weight" in name_lower and arr.shape != ()) or ("bias" in name_lower):
+            # Apply quantization similar to the HPP export
+            if "weight" in name_lower:
+                arr_quant = np.rint(arr).astype(np.int8)
+            elif "bias" in name_lower:
+                arr_quant = np.rint(arr).astype(np.int32)
+            # Flatten the array and add its elements to the list
+            flattened = arr_quant.flatten()
+            all_values.extend(flattened.tolist())
+            print(f"Including {init.name} with shape {arr.shape} into CSV.")
+
+    # Write the continuous list to the CSV file (all values in one row)
+    with open(csv_filename, "w") as f:
+        f.write(",".join(map(str, all_values)))
+    print(f"Model parameters exported to {csv_filename}")
+    print(f"Length of csv: {len(all_values)}")
+
+if __name__ == '__main__':
+    # Define paths for the ONNX model and output files
+    current_dir = os.path.dirname(__file__)
+    models_dir = os.path.join(current_dir, 'models')
+    if not os.path.exists(models_dir):
+        os.makedirs(models_dir)
+    onnx_file = os.path.join(models_dir, 'model.onnx')
+    hpp_file = os.path.join(models_dir, 'weights_bias.hpp')
+    csv_file = os.path.join(models_dir, 'weights_bias.csv')
+
+    export_initializers_to_hpp(onnx_file, hpp_file)
+    export_initializers_to_csv(onnx_file, csv_file)
