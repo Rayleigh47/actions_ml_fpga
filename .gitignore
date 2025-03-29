@@ -16,3 +16,7 @@ MLP_tanh/confusion_matrix_with_totals.png
 MLP_tanh/minmax_scaler.pkl
 venv
 .vscode
+.locks
+.peers.ini
+.repo.yaml
+logs/

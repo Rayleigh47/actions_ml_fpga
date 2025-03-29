@@ -6,18 +6,12 @@
 
 typedef ap_axis<32, 2, 5, 6> axi_stream;
 
-// Utility function to check if two floats are approximately equal
-//bool is_approx_equal(float a, float b, float tolerance = 0.00001f) {
-//    return std::fabs(a - b) <= tolerance;
-//}
-
 bool is_equal(int a, int b) {
     return (a-b) == 0;
 }
 
 int main() {
     // Results storage
-    // float model_output[test_length][OUTPUT_SIZE];
     int model_output[test_length];
     bool all_tests_passed = true;
     int count = 0;
@@ -45,7 +39,6 @@ int main() {
         if (is_equal(test_labels[i], model_output[i])) {
         	count += 1;
         }
-        // std::cout << "Expected " << test_labels[i] << ", got " << model_output[i] << std::endl;
     }
     float accuracy = count * 1.0 / test_length * 100;
     std::cout << "Accuracy =" << accuracy <<std::endl;

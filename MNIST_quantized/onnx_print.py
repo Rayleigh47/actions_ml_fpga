@@ -37,28 +37,28 @@ def export_initializers_to_hpp(onnx_file, hpp_filename="model_params.hpp"):
             name_lower = init.name.lower()
             # Check for weight initializers (and ignore scalars)
             if "weight" in name_lower and arr.shape != ():
-                layer_name = f"weight_layer_{weight_layer}"
+                layer_name = f"weights_{weight_layer}"
                 print(f"Exporting {layer_name} with shape {arr.shape}")
                 # Quantize: round and cast to int8
                 arr_int = np.rint(arr).astype(np.int8)
                 c_type = "int8_t"
                 dims = "".join(f"[{dim}]" for dim in arr_int.shape)
                 f.write(f"// {layer_name} shape: {arr_int.shape}\n")
-                f.write(f"static const {c_type} {layer_name}{dims} = \n")
+                f.write(f"static {c_type} {layer_name}{dims} = \n")
                 c_array_str = numpy_array_to_c_array_str(arr_int, integer=True)
                 f.write(c_array_str + ";\n\n")
                 weight_layer += 1
 
             # Check for bias initializers
             elif "bias" in name_lower:
-                layer_name = f"bias_layer_{bias_layer}"
+                layer_name = f"bias_{bias_layer}"
                 print(f"Exporting {layer_name} with shape {arr.shape}")
                 # Quantize: round and cast to int32
                 arr_int = np.rint(arr).astype(np.int32)
                 c_type = "int32_t"
                 dims = "".join(f"[{dim}]" for dim in arr_int.shape)
                 f.write(f"// {layer_name} shape: {arr_int.shape}\n")
-                f.write(f"static const {c_type} {layer_name}{dims} = \n")
+                f.write(f"static {c_type} {layer_name}{dims} = \n")
                 c_array_str = numpy_array_to_c_array_str(arr_int, integer=True)
                 f.write(c_array_str + ";\n\n")
                 bias_layer += 1

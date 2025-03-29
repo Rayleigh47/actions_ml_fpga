@@ -74,7 +74,7 @@ def save_dataset_as_csv(csv_path, dataset, csv_filename):
 
 # EarlyStopping class that monitors validation loss and saves the best model
 class EarlyStopping:
-    def __init__(self, patience=3, delta=0, path='models/model.pth', path2='models/model.onnx'):
+    def __init__(self, patience=5, delta=0, path='models/model.pth', path2='models/model.onnx'):
         """
         Args:
             patience (int): How many epochs to wait after last improvement.

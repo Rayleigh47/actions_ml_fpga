@@ -6,6 +6,12 @@
 
 // Contiguous RAM to store DMA transfer
 static int32_t total_weights_bias[TOTAL_WEIGHTS_BIAS] = {0};
+static int8_t weights_0[HIDDEN_SIZE_0][INPUT_SIZE] = {0};
+static int8_t weights_1[HIDDEN_SIZE_1][HIDDEN_SIZE_0] = {0};
+static int8_t weights_2[OUTPUT_SIZE][HIDDEN_SIZE_1] = {0};
+static int32_t bias_0[HIDDEN_SIZE_0] = {0};
+static int32_t bias_1[HIDDEN_SIZE_1] = {0};
+static int32_t bias_2[OUTPUT_SIZE] = {0};
 
 void read_weights_biases(hls::stream<axi_stream> &in_stream) {
     axi_stream inVal;
@@ -281,21 +287,23 @@ void mnist_quantized(hls::stream<axi_stream> &in_stream, hls::stream<axi_stream>
 
     // Scaling factors for quantization (tune these based on calibration)
     // Tanh
-    const float scale_0 = 0.00003067186116822995f / 0.0078125f; // From ONNX file
-    const float scale_1 = 0.000030517578125f / 0.0078125f; // From ONNX file
+    const float scale_0 = 0.0002452194457873702f / 0.0078125f; // From ONNX file
+    const float scale_1 = 0.000244140625f / 0.0078125f; // From ONNX file
 
     
-    // read_weights_biases(in_stream);
-    // init_layers();
+    // For actual implementation
+    read_weights_biases(in_stream);
+    init_layers();
     // write_weights_biases(out_stream);
-    // for (int i = 0; i < 1000; i ++) {
-    //     read_inputs(in_stream, input);
-    //     inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
-    //     send_outputs(out_stream, class_predictions);
-    // }
+    for (int i = 0; i < 10000; i ++) {
+        read_inputs(in_stream, input);
+        inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+        send_outputs(out_stream, class_predictions);
+    }
 
-    read_inputs(in_stream, input);
-    inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
-    send_outputs(out_stream, class_predictions);
+    // For Testing with test.cpp
+    // read_inputs(in_stream, input);
+    // inference(input, hidden_1, hidden_2, output, weights_0, weights_1, weights_2, bias_0, bias_1, bias_2, scale_0, scale_1, class_predictions);
+    // send_outputs(out_stream, class_predictions);
 
 }

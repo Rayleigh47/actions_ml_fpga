@@ -10,7 +10,7 @@ df = df.iloc[:10000]
 
 # Extract features: drop 'pixel0' and 'pixel1' to get 782 features (pixel2 to pixel783)
 # (Adjust this if you wish to drop different columns.)
-feature_cols = [f"pixel{i}" for i in range(2, 784)]
+feature_cols = [f"pixel{i}" for i in range(0, 784)]
 features = df[feature_cols].to_numpy(dtype=np.float32)
 
 # Extract labels
@@ -22,7 +22,7 @@ header_lines.append("#ifndef TEST_DATA_HPP")
 header_lines.append("#define TEST_DATA_HPP")
 header_lines.append('const int test_length = 10000;')
 header_lines.append("")
-header_lines.append("const float test_data[test_length][782] = {")
+header_lines.append("const float test_data[test_length][784] = {")
 for row in features:
     # Format each float with 8 decimal places; join with commas.
     row_str = ", ".join(map(str, row))
